@@ -68,16 +68,15 @@ def pileup_model(hps):
  
     model = Sequential()
     
+    layer_opts = {'activation': 'relu', 'kernel_initializer': 'he_uniform', 'padding': 'valid'}
     for i in range(len(layers)):
-        opts = {'padding': (zero_pad[i], zero_pad[i])}
-        if i == 0:
-            opts['input_shape'] = (nb_channels, img_size, img_size)
-        model.add(ZeroPadding2D(**opts))
-        
-        model.add(layers[i](nb_filters[i], filter_size[i], activation='relu', strides=stride[i], kernel_initializer='he_uniform', padding='valid'))
+        padding_opts = {'input_shape': (nb_channels, img_size, img_size)} if i == 0 else {}
+        model.add(ZeroPadding2D(padding=(zero_pad[i], zero_pad[i]), **padding_opts))
+
+        model.add(layers[i](nb_filters[i], filter_size[i], strides=stride[i], **layer_opts))
 
     if nb_filters[len(layers)-1] > 1:
-        model.add(proj_layer(1, 1, kernel_initializer='he_uniform', padding='valid', activation='relu'))
+        model.add(proj_layer(1, 1, **layer_opts))
 
     model.compile(loss=loss, optimizer=Adam(lr=lr))
 
